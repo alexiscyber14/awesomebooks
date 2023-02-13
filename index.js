@@ -43,3 +43,4 @@ function addBook(title, author) {
   });
   
   renderBooks();
+  
