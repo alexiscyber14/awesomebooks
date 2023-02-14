@@ -15,7 +15,7 @@ class BookCollection {
     
     getNextId() {
         let maxId = 0;
-        for (const book of books) {
+        for (const book of this.books) {
           if (book.id > maxId) {
             maxId = book.id;
           }
@@ -24,35 +24,34 @@ class BookCollection {
       }
     
     addBook(title, author) {
-        const id = getNextId();
-          books.push({ id, title, author });
-          localStorage.setItem("books", JSON.stringify(books));
-          render();
+        const id = this.getNextId();
+        const book = new Book(id, title, author);
+          this.books.push(book);
+          this.save();
         }
 
     removeBook(id) {
-        books = books.filter(book => book.id !== id);
-        localStorage.setItem("books", JSON.stringify(books));
-        render();
+        this.books = this.books.filter(book => book.id !== id);
+        this.save();
         }
     
     render() {
         const bookCollection = document.getElementById("book-collection");
         bookCollection.innerHTML = "";
-        for (const book of books) {
+        for (const book of this.books) {
             const bookElement = document.createElement("div");
             bookElement.innerHTML = `<h4>${book.title}<br> ${book.author}</h4><button class="remove-button">Remove</button> <br> <hr>`;
             bookElement.querySelector(".remove-button").addEventListener("click", () => {
-            removeBook(book.id);
+            this.removeBook(book.id);
+            this.render();
             });
             bookCollection.appendChild(bookElement);
-        }
-        
+        }        
         }
       
 
     save(){
-        localStorage.setItem("books", JSON.stringify(books))
+        localStorage.setItem("books", JSON.stringify(this.books))
     }
 
     load(){
@@ -60,8 +59,7 @@ class BookCollection {
       for(const book of books){
         this.books.push(new Book(book.id, book.title, book.author));
       }
-    } 
-    
+    }    
 }
 
 const bookCollection = new BookCollection();
@@ -69,11 +67,12 @@ bookCollection.load();
 bookCollection.render()
 
 const bookForm = document.getElementById("book-form");
-bookForm.addEventListener("submit",(e) => {
-  e.preventDefault();
+bookForm.addEventListener("submit", event => {
+  event.preventDefault();
   const title = document.getElementById("title").value;
   const author = document.getElementById("author").value;
   bookCollection.addBook(title, author);
+  bookCollection.render();
   bookForm.reset();
   
 });
