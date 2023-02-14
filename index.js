@@ -1,3 +1,4 @@
+
 class Book {
     constructor (id, title, author) {
         this.id = id;
@@ -10,6 +11,8 @@ class BookCollection {
     constructor () {
         this.books = [];
     }
+
+    
     getNextId() {
         let maxId = 0;
         for (const book of books) {
@@ -24,16 +27,17 @@ class BookCollection {
         const id = getNextId();
           books.push({ id, title, author });
           localStorage.setItem("books", JSON.stringify(books));
-          renderBooks();
+          render();
         }
 
     removeBook(id) {
         books = books.filter(book => book.id !== id);
         localStorage.setItem("books", JSON.stringify(books));
-        renderBooks();
+        render();
         }
     
-    renderBooks() {
+    render() {
+        const bookCollection = document.getElementById("book-collection");
         bookCollection.innerHTML = "";
         for (const book of books) {
             const bookElement = document.createElement("div");
@@ -43,10 +47,33 @@ class BookCollection {
             });
             bookCollection.appendChild(bookElement);
         }
+        
         }
+      
 
     save(){
         localStorage.setItem("books", JSON.stringify(books))
     }
+
+    load(){
+      const books = JSON.parse(localStorage.getItem("books")) || [];
+      for(const book of books){
+        this.books.push(new Book(book.id, book.title, book.author));
+      }
+    } 
     
 }
+
+const bookCollection = new BookCollection();
+bookCollection.load();
+bookCollection.render()
+
+const bookForm = document.getElementById("book-form");
+bookForm.addEventListener("submit",(e) => {
+  e.preventDefault();
+  const title = document.getElementById("title").value;
+  const author = document.getElementById("author").value;
+  bookCollection.addBook(title, author);
+  bookForm.reset();
+  
+});
