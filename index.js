@@ -1,58 +1,76 @@
+class Book {
+  constructor(id, title, author) {
+    this.id = id;
+    this.title = title;
+    this.author = author;
+  }
+}
 
-// Get the book collection container and the form
-const bookCollection = document.getElementById("book-collection");
-const bookForm = document.getElementById("book-form");
+class BookCollection {
+  constructor() {
+    this.books = [];
+  }
 
-// Load the books from localStorage
-let books = JSON.parse(localStorage.getItem("books")) || [];
+  getNextId() {
+    let maxId = 0;
+    for (const book of this.books) {
+      if (book.id > maxId) {
+        maxId = book.id;
+      }
+    }
+    return maxId + 1;
+  }
 
-//set book id here
-function getNextId() {
-  let maxId = 0;
-  for (const book of books) {
-    if (book.id > maxId) {
-      maxId = book.id;
+  addBook(title, author) {
+    const id = this.getNextId();
+    const book = new Book(id, title, author);
+    this.books.push(book);
+    this.save();
+  }
+
+  removeBook(id) {
+    this.books = this.books.filter((book) => book.id !== id);
+    this.save();
+  }
+
+  render() {
+    const bookCollection = document.getElementById('book-collection');
+    bookCollection.innerHTML = '';
+    const color = '#fff';
+    for (const book of this.books) {
+      const bookElement = document.createElement('div');
+      bookElement.className = 'list-block';
+      bookElement.innerHTML = `<h4>${book.title} by ${book.author}</h4><button class="remove-button">Remove</button>`;
+      bookElement.querySelector('.remove-button').addEventListener('click', () => {
+        this.removeBook(book.id);
+        this.render();
+      });
+      bookCollection.appendChild(bookElement);
     }
   }
-  return maxId + 1;
-}
 
-// Render the books
-function renderBooks() {
-  bookCollection.innerHTML = "";
-  for (const book of books) {
-    const bookElement = document.createElement("div");
-    bookElement.innerHTML = `<h4>${book.title}<br> ${book.author}</h4><button class="remove-button">Remove</button> <br> <hr>`;
-    bookElement.querySelector(".remove-button").addEventListener("click", () => {
-      removeBook(book.id);
-    });
-    bookCollection.appendChild(bookElement);
+  save() {
+    localStorage.setItem('books', JSON.stringify(this.books));
+  }
+
+  load() {
+    const books = JSON.parse(localStorage.getItem('books')) || [];
+    for (const book of books) {
+      this.books.push(new Book(book.id, book.title, book.author));
+    }
   }
 }
 
+const bookCollection = new BookCollection();
+bookCollection.load();
+bookCollection.render();
 
-// Add a new book
-function addBook(title, author) {
-  const id = getNextId();
-    books.push({ id, title, author });
-    localStorage.setItem("books", JSON.stringify(books));
-    renderBooks();
-  }
-  
-  // Remove specific book
-  function removeBook(id) {
-    books = books.filter(book => book.id !== id);
-    localStorage.setItem("books", JSON.stringify(books));
-    renderBooks();
-  }
-  
-  // Handle the form  on the submit event
-  bookForm.addEventListener("submit", event => {
-    event.preventDefault();
-    const title = document.getElementById("title").value;
-    const author = document.getElementById("author").value;
-    addBook(title, author);
-    bookForm.reset();
-  });
-  
-  renderBooks();
+const bookForm = document.getElementById('book-form');
+bookForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const title = document.getElementById('title').value;
+  const author = document.getElementById('author').value;
+  bookCollection.addBook(title, author);
+  bookCollection.render();
+  bookForm.reset();
+});
